@@ -13,15 +13,18 @@ fn main() {
 
     let mut component_name = component_name.trim().to_string();
 
-    match create_dir(&component_name) {
+    match create_dir(&mut component_name) {
         Ok(_) => {},
         Err(_) => {
             panic!("could not create component directory");
         }
     }
 
-    let tsx_file_name = format!("{}.tsx", component_name);
-    let css_file_name = format!("{}.css", component_name);
+    //bug was occurring because i accounted for the new 
+    //directory in the filenames
+    //so the Path command was appending a further lol/
+    let tsx_file_name = format!("{}/{}.tsx", component_name, component_name);
+    let css_file_name = format!("{}/{}.css", component_name, component_name);
     let file_vec = vec![&tsx_file_name, &css_file_name];
 
     match create_files(&file_vec) {
@@ -52,10 +55,14 @@ fn read_input(component_name: &mut String) -> Result<i32, i32> {
 
 fn create_file(file_name: &String) -> Result<i32, i32> {
     use std::fs::File;
-    match File::create(file_name) {
-        Ok(_) => {},
-        Err(_) => {
-            return Err(0);
+    let path = format!("{}", file_name);
+    
+    match File::create(&path) {
+        Ok(file) => {
+            println!("{:?}", file);
+        },
+        Err(why) => {
+            panic!("couldn't create {} {}", path, why);
         }
     };
 
@@ -95,7 +102,7 @@ fn write_to_tsx(tsx_file_name: &String, component_name: &mut String) -> Result<i
 
 fn create_dir(component_name: &mut String) -> Result<i32, i32> {
     use std::fs;
-    match fs::create_dir(component_name) {
+    match fs::create_dir(&component_name) {
         Ok(_) => {
             println!("created {} directory", component_name);
         },
@@ -104,5 +111,5 @@ fn create_dir(component_name: &mut String) -> Result<i32, i32> {
         },
     };
 
-    Ok(1);
+    Ok(1)
 }
